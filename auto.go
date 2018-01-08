@@ -10,8 +10,8 @@ import (
 //		defer lock.Read(&rwmutex).Unlock()
 //		defer lock.Write(&rwmutex).Unlock()
 
-// sync.Mutex examples:
-//		defer lock.Mutex(&mutex).Unlock()
+// sync.Locker examples (including Mutex):
+//		defer lock.Locker(locker).Unlock()
 
 
 // struct ReadAuto manages an automatic RWMutex read lock.
@@ -42,16 +42,16 @@ func Write(rw *sync.RWMutex) WriteAuto {
 	return WriteAuto{rw}
 }
 
-// struct MutexAuto manages an automatic Mutex lock.
-type MutexAuto struct {
-	m *sync.Mutex
+// struct LockerAuto manages an automatic Locker lock.
+type LockerAuto struct {
+	m sync.Locker
 }
 
-func (l MutexAuto) Unlock() {
+func (l LockerAuto) Unlock() {
 	l.m.Unlock()
 }
 
-func Mutex(m *sync.Mutex) MutexAuto {
+func Locker(m sync.Locker) LockerAuto {
 	m.Lock()
-	return MutexAuto{m}
+	return LockerAuto{m}
 }
