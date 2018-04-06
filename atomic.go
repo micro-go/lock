@@ -6,6 +6,9 @@ import (
 
 type AtomicBool interface {
 	SetTo(b bool)
+	IsTrue() bool
+
+	// I think deprecate this -- I tend to get confused on the meaning in use.
 	IsSet() bool
 }
 
@@ -25,6 +28,11 @@ func (a *atomicBool) SetTo(b bool) {
 	atomic.StoreInt32(&a.val, newVal)
 }
 
+func (a *atomicBool) IsTrue() bool {
+	return atomic.LoadInt32(&a.val) != 0
+}
+
+// I think deprecate this -- I tend to get confused on the meaning in use.
 func (a *atomicBool) IsSet() bool {
 	return atomic.LoadInt32(&a.val) != 0
 }
