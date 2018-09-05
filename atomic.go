@@ -4,6 +4,9 @@ import (
 	"sync/atomic"
 )
 
+// --------------------------------
+// ATOMIC-BOOL
+
 type AtomicBool interface {
 	SetTo(b bool)
 	IsTrue() bool
@@ -35,4 +38,36 @@ func (a *atomicBool) IsTrue() bool {
 // I think deprecate this -- I tend to get confused on the meaning in use.
 func (a *atomicBool) IsSet() bool {
 	return atomic.LoadInt32(&a.val) != 0
+}
+
+// --------------------------------
+// ATOMIC-INT32
+
+type AtomicInt32 interface {
+	// Get() the current value.
+	Get() int32
+	// SetTo() the new value.
+	SetTo(newval int32)
+	// TrySetTo() sets to the new value only if the current value is compareval. Answer true if the set succeeded.
+	TrySetTo(newval, compareval int32) bool
+}
+
+func NewAtomicInt32() AtomicInt32 {
+	return &AtomicInt32_t{val: 0}
+}
+
+type AtomicInt32_t struct {
+	val int32
+}
+
+func (a *AtomicInt32_t) Get() int32 {
+	return atomic.LoadInt32(&a.val)
+}
+
+func (a *AtomicInt32_t) SetTo(newval int32) {
+	atomic.StoreInt32(&a.val, newval)
+}
+
+func (a *AtomicInt32_t) TrySetTo(newval, compareval int32) bool {
+	return atomic.CompareAndSwapInt32(&a.val, compareval, newval)
 }
