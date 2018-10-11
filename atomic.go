@@ -48,6 +48,8 @@ type AtomicInt32 interface {
 	Get() int32
 	// SetTo() the new value.
 	SetTo(newval int32)
+	// Add() adds the delta, returning the new value.
+	Add(delta int32) int32
 	// TrySetTo() sets to the new value only if the current value is compareval. Answer true if the set succeeded.
 	TrySetTo(newval, compareval int32) bool
 }
@@ -66,6 +68,10 @@ func (a *AtomicInt32_t) Get() int32 {
 
 func (a *AtomicInt32_t) SetTo(newval int32) {
 	atomic.StoreInt32(&a.val, newval)
+}
+
+func (a *AtomicInt32_t) Add(delta int32) int32 {
+	return atomic.AddInt32(&a.val, delta)
 }
 
 func (a *AtomicInt32_t) TrySetTo(newval, compareval int32) bool {
