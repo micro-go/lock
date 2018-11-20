@@ -1,7 +1,7 @@
 package lock
 
 import (
-	"errors"
+	"sync"
 	"sync/atomic"
 )
 
@@ -55,26 +55,23 @@ func NewAtomicError() AtomicError {
 	return &AtomicError_t{}
 }
 
+// AtomicError_t struct stores an error safely. This isn't actually
+// atomic, it just uses a standard mutex. I thought I could use the
+// atomic value type, but errors have different underlying value
+// types so it doesn't work.
 type AtomicError_t struct {
-	val atomic.Value
+	mutex sync.Mutex
+	err   error
 }
 
 func (a *AtomicError_t) Get() error {
-	_err := a.val.Load()
-	if err, ok := _err.(error); ok {
-		if err == err_nil {
-			return nil
-		}
-		return err
-	}
-	return nil
+	defer Locker(&a.mutex).Unlock()
+	return a.err
 }
 
 func (a *AtomicError_t) SetTo(err error) {
-	if err == nil {
-		err = err_nil
-	}
-	a.val.Store(err)
+	defer Locker(&a.mutex).Unlock()
+	a.err = err
 }
 
 // --------------------------------
@@ -114,10 +111,3 @@ func (a *AtomicInt32_t) Add(delta int32) int32 {
 func (a *AtomicInt32_t) TrySetTo(newval, compareval int32) bool {
 	return atomic.CompareAndSwapInt32(&a.val, compareval, newval)
 }
-
-// --------------------------------
-// CONST and VAR
-
-var (
-	err_nil = errors.New("mgo/lock/nil")
-)
