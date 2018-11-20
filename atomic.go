@@ -1,6 +1,7 @@
 package lock
 
 import (
+	"errors"
 	"sync/atomic"
 )
 
@@ -41,6 +42,42 @@ func (a *atomicBool) IsSet() bool {
 }
 
 // --------------------------------
+// ATOMIC-ERROR
+
+type AtomicError interface {
+	// Get() the current value.
+	Get() error
+	// SetTo() the new value.
+	SetTo(err error)
+}
+
+func NewAtomicError() AtomicError {
+	return &AtomicError_t{}
+}
+
+type AtomicError_t struct {
+	val atomic.Value
+}
+
+func (a *AtomicError_t) Get() error {
+	_err := a.val.Load()
+	if err, ok := _err.(error); ok {
+		if err == err_nil {
+			return nil
+		}
+		return err
+	}
+	return nil
+}
+
+func (a *AtomicError_t) SetTo(err error) {
+	if err == nil {
+		err = err_nil
+	}
+	a.val.Store(err)
+}
+
+// --------------------------------
 // ATOMIC-INT32
 
 type AtomicInt32 interface {
@@ -77,3 +114,10 @@ func (a *AtomicInt32_t) Add(delta int32) int32 {
 func (a *AtomicInt32_t) TrySetTo(newval, compareval int32) bool {
 	return atomic.CompareAndSwapInt32(&a.val, compareval, newval)
 }
+
+// --------------------------------
+// CONST and VAR
+
+var (
+	err_nil = errors.New("mgo/lock/nil")
+)
