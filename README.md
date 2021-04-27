@@ -1,6 +1,6 @@
 # lock
 
-A small Go library to handle scoped locks.
+A small Go library to handle scoped locks in a single line.
 
 sync.RWMutex examples:
 
